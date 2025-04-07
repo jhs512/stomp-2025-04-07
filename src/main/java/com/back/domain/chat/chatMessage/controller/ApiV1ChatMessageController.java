@@ -1,8 +1,13 @@
 package com.back.domain.chat.chatMessage.controller;
 
+import com.back.domain.chat.chatMessage.dto.ChatMessageDto;
 import com.back.domain.chat.chatMessage.entity.ChatMessage;
+import com.back.global.StompMessageTemplate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -12,11 +17,13 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/chat/rooms/{chatRoomId}/messages")
 @CrossOrigin(
         origins = "https://cdpn.io"
 )
 public class ApiV1ChatMessageController {
+    private final StompMessageTemplate template;
     private int lastChatMessageId = 0;
     private final Map<Integer, List<ChatMessage>> chatMessagesByRoomId = new HashMap<>() {{
         put(1, new ArrayList<>() {{
@@ -153,5 +160,33 @@ public class ApiV1ChatMessageController {
         chatMessages.add(chatMessage);
 
         return chatMessage;
+    }
+
+    // 웹소켓 방식
+    public record CreateMessageReqBody(String writerName, String content) {
+    }
+
+    @MessageMapping("/chat/rooms/{chatRoomId}/messages/create")
+    public void createMessage(
+            CreateMessageReqBody createMessageReqBody,
+            @DestinationVariable int chatRoomId
+    ) {
+        List<ChatMessage> chatMessages = chatMessagesByRoomId.computeIfAbsent(chatRoomId, k -> new ArrayList<>());
+
+        ChatMessage chatMessage = ChatMessage
+                .builder()
+                .id(++lastChatMessageId)
+                .createDate(LocalDateTime.now())
+                .modifyDate(LocalDateTime.now())
+                .chatRoomId(chatRoomId)
+                .writerName(createMessageReqBody.writerName)
+                .content(createMessageReqBody.content)
+                .build();
+
+        chatMessages.add(chatMessage);
+
+        ChatMessageDto chatMessageDto = new ChatMessageDto(chatMessage);
+
+        template.convertAndSend("topic", "chat/rooms/" + chatRoomId + "/messages/created", chatMessageDto);
     }
 }
