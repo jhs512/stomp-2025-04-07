@@ -1,11 +1,14 @@
 package com.back.global;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+@Profile("disable")
+// @Profile("!prod")
 @Configuration
 @EnableWebSocketMessageBroker
 public class StompSimpleBrokerConfig implements WebSocketMessageBrokerConfigurer {

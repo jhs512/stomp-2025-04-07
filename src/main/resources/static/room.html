@@ -49,7 +49,7 @@
                 console.log("Connected: " + frame);
 
                 stompClient.subscribe(
-                    `/topic/chat/rooms/${chatRoomId}/messages/created`,
+                    `/topic/chatRooms${chatRoomId}MessagesCreated`,
                     function (data) {
                         setChatMessages(prev => {
                             return [JSON.parse(data.body), ...prev];
@@ -115,7 +115,21 @@
     }
 
     function dateForPrint(date) {
-        return date.substring(2, 16).replaceAll("-", ".").replace("T", " ");
+        // date가 배열인 경우
+        if (Array.isArray(date)) {
+            // new Date(year, monthIndex, day, hour, minute, second, millisecond)
+            const d = new Date(...date);
+            // yyyy.mm.dd hh:mm
+            return d.toISOString().substring(2, 16).replaceAll("-", ".").replace("T", " ");
+        }
+
+        // date가 문자열인 경우
+        if (typeof date === 'string') {
+            return date.substring(2, 16).replaceAll("-", ".").replace("T", " ");
+        }
+
+        // 예외 처리 (옵션)
+        return "";
     }
 
     ReactDOM.createRoot(document.getElementById("root")).render(<App/>);

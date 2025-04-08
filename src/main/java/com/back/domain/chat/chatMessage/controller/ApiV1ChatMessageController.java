@@ -2,10 +2,10 @@ package com.back.domain.chat.chatMessage.controller;
 
 import com.back.domain.chat.chatMessage.dto.ChatMessageDto;
 import com.back.domain.chat.chatMessage.entity.ChatMessage;
-import com.back.global.StompMessageTemplate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +23,8 @@ import java.util.Map;
         origins = "https://cdpn.io"
 )
 public class ApiV1ChatMessageController {
-    private final StompMessageTemplate template;
+    private final RabbitTemplate template;
+    // private final StompMessageTemplate template;
     private int lastChatMessageId = 0;
     private final Map<Integer, List<ChatMessage>> chatMessagesByRoomId = new HashMap<>() {{
         put(1, new ArrayList<>() {{
@@ -187,6 +188,6 @@ public class ApiV1ChatMessageController {
 
         ChatMessageDto chatMessageDto = new ChatMessageDto(chatMessage);
 
-        template.convertAndSend("topic", "chat/rooms/" + chatRoomId + "/messages/created", chatMessageDto);
+        template.convertAndSend("amq.topic", "chatRooms" + chatRoomId + "MessagesCreated", chatMessageDto);
     }
 }

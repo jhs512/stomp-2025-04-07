@@ -3,3 +3,8 @@ spring:
     name: back
   thymeleaf:
     cache: false
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
